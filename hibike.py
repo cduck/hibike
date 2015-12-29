@@ -510,18 +510,23 @@ class HibikeDevice:
     def getData(self, param, data_format="dict"):
         formats = {"dict": self.dataToDict, "tuple": self.dataToTuple, "int": self.dataToInt}
         data = self.params[param][0]
-        if type(data) in (str, bytes, bytearray):
-            data = formats[data_format](data)
+        data = formats[data_format](data)
         return data
 
     def dataToDict(self, data):
-        unpacked = struct.unpack(self.deviceType.dataFormat, data)
-        scaled = [field / scale if scale != 1 else field for field, scale in zip(unpacked, self.deviceType.scalingFactors)]
+        if isinstance(data, tuple):
+            scaled = data
+        else:
+            unpacked = struct.unpack(self.deviceType.dataFormat, data)
+            scaled = [field / scale if scale != 1 else field for field, scale in zip(unpacked, self.deviceType.scalingFactors)]
         return self.deviceType.dict_factory(*scaled)
 
     def dataToTuple(self, data):
-        unpacked = struct.unpack(self.deviceType.dataFormat, data)
-        scaled = [field / scale if scale != 1 else field for field, scale in zip(unpacked, self.deviceType.scalingFactors)]
+        if isinstance(data, tuple):
+            scaled = data
+        else:
+            unpacked = struct.unpack(self.deviceType.dataFormat, data)
+            scaled = [field / scale if scale != 1 else field for field, scale in zip(unpacked, self.deviceType.scalingFactors)]
         return self.deviceType.dataTuple(*scaled)
 
 
